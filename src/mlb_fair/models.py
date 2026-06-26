@@ -100,29 +100,45 @@ class KalshiMarket(BaseModel):
     close_time: Optional[datetime] = None
     created_time: Optional[datetime] = None
     updated_time: Optional[datetime] = None
-    yes_sub_title: Optional[str] = None  # for a moneyline, the YES team name
+    # NOTE (verified against the live KXMLBGAME series, 2026): each game is ONE event
+    # with TWO markets, one per team. Within a market `yes_sub_title` and `no_sub_title`
+    # are the SAME team — the contract is binary "does THIS team win?". So yes_sub_title
+    # is the YES-side team for this contract; it is NOT the opposing pair.
+    yes_sub_title: Optional[str] = None
     no_sub_title: Optional[str] = None
     rules_primary: Optional[str] = None
+    # `occurrence_datetime` is the real UTC game start (the spine's join anchor on the
+    # Kalshi side). Live MLB markets have NO `strike_date`; the *_expiration_time /
+    # close_time fields are settlement deadlines days later, never the start time.
+    occurrence_datetime: Optional[datetime] = None
+    custom_strike: dict = Field(default_factory=dict)  # e.g. {"baseball_team": "<kalshi-uuid>"}
     product_metadata: dict = Field(default_factory=dict)
 
 
 class KalshiEvent(BaseModel):
     event_ticker: str
     series_ticker: str
-    title: Optional[str] = None
-    sub_title: Optional[str] = None
-    strike_date: Optional[datetime] = None
+    title: Optional[str] = None  # "<away> vs <home>" — the authoritative team pair
+    sub_title: Optional[str] = None  # "<AWY> vs <HOM> (Mon DD)"
+    strike_date: Optional[datetime] = None  # absent on live MLB; kept for schema parity
+    product_metadata: dict = Field(default_factory=dict)  # {"competition","competition_scope"}
     markets: list[KalshiMarket] = Field(default_factory=list)
 
 
 class FixtureBinding(BaseModel):
-    """Resolved link between a Kalshi market and a spine game."""
+    """Resolved link between a Kalshi event and a spine game.
+
+    One event -> one gamePk, but the event carries two per-team contracts, so
+    `market_yes` records every market_ticker -> yes_team_id. The singular
+    `market_ticker`/`yes_team_id` are the representative (home-team) contract.
+    """
 
     event_ticker: str
-    market_ticker: str
+    market_ticker: str  # representative (home-team) market
     game_pk: int
     game_number: int
     yes_team_id: int  # which team the YES contract pays on -> picks fair_home vs fair_away
+    market_yes: dict[str, int] = Field(default_factory=dict)  # market_ticker -> yes_team_id (both)
     confidence: str = "exact"  # exact | ordinal | text
     bound_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

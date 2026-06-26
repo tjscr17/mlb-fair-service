@@ -1,0 +1,289 @@
+{
+  "_comment": "Mirrors the live KXMLBGAME shape (verified 2026): one event per game, two per-team markets, NO strike_date, game start in occurrence_datetime, product_metadata at event level. All occurrence_datetimes normalize (US/Eastern) to local date 2026-06-25 to match data/mock_schedule.json. Includes negative events (unknown alias, pending) for the mapper tests.",
+  "events": [
+    {
+      "event_ticker": "KXMLBGAME-26JUN251910NYYBOS",
+      "series_ticker": "KXMLBGAME",
+      "title": "New York Y vs Boston",
+      "sub_title": "NYY vs BOS (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251910NYYBOS-NYY",
+          "event_ticker": "KXMLBGAME-26JUN251910NYYBOS",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:45:11Z",
+          "updated_time": "2026-06-25T15:00:00Z",
+          "yes_sub_title": "New York Y",
+          "no_sub_title": "New York Y",
+          "rules_primary": "If New York Y wins the New York Y vs Boston professional baseball game originally scheduled for Jun 25, 2026 at 7:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T23:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000147" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251910NYYBOS-BOS",
+          "event_ticker": "KXMLBGAME-26JUN251910NYYBOS",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:45:11Z",
+          "updated_time": "2026-06-25T15:00:00Z",
+          "yes_sub_title": "Boston",
+          "no_sub_title": "Boston",
+          "rules_primary": "If Boston wins the New York Y vs Boston professional baseball game originally scheduled for Jun 25, 2026 at 7:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T23:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000111" }
+        }
+      ]
+    },
+
+    {
+      "event_ticker": "KXMLBGAME-26JUN251310CHCMIL",
+      "series_ticker": "KXMLBGAME",
+      "title": "Chicago C vs Milwaukee",
+      "sub_title": "CHC vs MIL (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251310CHCMIL-CHC",
+          "event_ticker": "KXMLBGAME-26JUN251310CHCMIL",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:50:00Z",
+          "updated_time": "2026-06-25T12:00:00Z",
+          "yes_sub_title": "Chicago C",
+          "no_sub_title": "Chicago C",
+          "rules_primary": "If Chicago C wins the Chicago C vs Milwaukee professional baseball game originally scheduled for Jun 25, 2026 at 1:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T17:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000112" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251310CHCMIL-MIL",
+          "event_ticker": "KXMLBGAME-26JUN251310CHCMIL",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:50:00Z",
+          "updated_time": "2026-06-25T12:00:00Z",
+          "yes_sub_title": "Milwaukee",
+          "no_sub_title": "Milwaukee",
+          "rules_primary": "If Milwaukee wins the Chicago C vs Milwaukee professional baseball game originally scheduled for Jun 25, 2026 at 1:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T17:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000158" }
+        }
+      ]
+    },
+    {
+      "event_ticker": "KXMLBGAME-26JUN251910CHCMIL",
+      "series_ticker": "KXMLBGAME",
+      "title": "Chicago C vs Milwaukee",
+      "sub_title": "CHC vs MIL (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251910CHCMIL-CHC",
+          "event_ticker": "KXMLBGAME-26JUN251910CHCMIL",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:50:00Z",
+          "updated_time": "2026-06-25T12:00:00Z",
+          "yes_sub_title": "Chicago C",
+          "no_sub_title": "Chicago C",
+          "rules_primary": "If Chicago C wins the Chicago C vs Milwaukee professional baseball game originally scheduled for Jun 25, 2026 at 7:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T23:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000112" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251910CHCMIL-MIL",
+          "event_ticker": "KXMLBGAME-26JUN251910CHCMIL",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:50:00Z",
+          "updated_time": "2026-06-25T12:00:00Z",
+          "yes_sub_title": "Milwaukee",
+          "no_sub_title": "Milwaukee",
+          "rules_primary": "If Milwaukee wins the Chicago C vs Milwaukee professional baseball game originally scheduled for Jun 25, 2026 at 7:10 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T23:10:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000158" }
+        }
+      ]
+    },
+
+    {
+      "event_ticker": "KXMLBGAME-26JUN251607HOUATH-G1",
+      "series_ticker": "KXMLBGAME",
+      "title": "Houston vs Athletics",
+      "sub_title": "HOU vs ATH (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251607HOUATH-G1-HOU",
+          "event_ticker": "KXMLBGAME-26JUN251607HOUATH-G1",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:55:00Z",
+          "updated_time": "2026-06-25T16:00:00Z",
+          "yes_sub_title": "Houston",
+          "no_sub_title": "Houston",
+          "rules_primary": "If Houston wins the Houston vs Athletics professional baseball game (Game 1 of a doubleheader) originally scheduled for Jun 25, 2026 at 4:07 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T20:07:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000117" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251607HOUATH-G1-ATH",
+          "event_ticker": "KXMLBGAME-26JUN251607HOUATH-G1",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:55:00Z",
+          "updated_time": "2026-06-25T16:00:00Z",
+          "yes_sub_title": "Athletics",
+          "no_sub_title": "Athletics",
+          "rules_primary": "If the Athletics win the Houston vs Athletics professional baseball game (Game 1 of a doubleheader) originally scheduled for Jun 25, 2026 at 4:07 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T20:07:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000133" }
+        }
+      ]
+    },
+    {
+      "event_ticker": "KXMLBGAME-26JUN252015HOUATH-G2",
+      "series_ticker": "KXMLBGAME",
+      "title": "Houston vs Athletics",
+      "sub_title": "HOU vs ATH (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN252015HOUATH-G2-HOU",
+          "event_ticker": "KXMLBGAME-26JUN252015HOUATH-G2",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:55:00Z",
+          "updated_time": "2026-06-25T16:00:00Z",
+          "yes_sub_title": "Houston",
+          "no_sub_title": "Houston",
+          "rules_primary": "If Houston wins the Houston vs Athletics professional baseball game (Game 2 of a doubleheader), which begins approximately 30 minutes after the conclusion of Game 1, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-26T00:15:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000117" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN252015HOUATH-G2-ATH",
+          "event_ticker": "KXMLBGAME-26JUN252015HOUATH-G2",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:55:00Z",
+          "updated_time": "2026-06-25T16:00:00Z",
+          "yes_sub_title": "Athletics",
+          "no_sub_title": "Athletics",
+          "rules_primary": "If the Athletics win the Houston vs Athletics professional baseball game (Game 2 of a doubleheader), which begins approximately 30 minutes after the conclusion of Game 1, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-26T00:15:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000133" }
+        }
+      ]
+    },
+
+    {
+      "event_ticker": "KXMLBGAME-26JUN251845LADSF",
+      "series_ticker": "KXMLBGAME",
+      "title": "Los Angeles D vs San Francisco",
+      "sub_title": "LAD vs SF (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251845LADSF-LAD",
+          "event_ticker": "KXMLBGAME-26JUN251845LADSF",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:58:00Z",
+          "updated_time": "2026-06-25T18:00:00Z",
+          "yes_sub_title": "Los Angeles D",
+          "no_sub_title": "Los Angeles D",
+          "rules_primary": "If Los Angeles D wins the Los Angeles D vs San Francisco professional baseball game originally scheduled for Jun 25, 2026 at 6:45 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T22:45:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000119" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251845LADSF-SF",
+          "event_ticker": "KXMLBGAME-26JUN251845LADSF",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:58:00Z",
+          "updated_time": "2026-06-25T18:00:00Z",
+          "yes_sub_title": "San Francisco",
+          "no_sub_title": "San Francisco",
+          "rules_primary": "If San Francisco wins the Los Angeles D vs San Francisco professional baseball game originally scheduled for Jun 25, 2026 at 6:45 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T22:45:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000137" }
+        }
+      ]
+    },
+
+    {
+      "event_ticker": "KXMLBGAME-26JUN251730PORBOS",
+      "series_ticker": "KXMLBGAME",
+      "title": "Portland Pioneers vs Boston",
+      "sub_title": "POR vs BOS (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251730PORBOS-POR",
+          "event_ticker": "KXMLBGAME-26JUN251730PORBOS",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:59:00Z",
+          "updated_time": "2026-06-25T17:00:00Z",
+          "yes_sub_title": "Portland Pioneers",
+          "no_sub_title": "Portland Pioneers",
+          "rules_primary": "If Portland Pioneers wins the Portland Pioneers vs Boston professional baseball game, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T21:30:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000999" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251730PORBOS-BOS",
+          "event_ticker": "KXMLBGAME-26JUN251730PORBOS",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:59:00Z",
+          "updated_time": "2026-06-25T17:00:00Z",
+          "yes_sub_title": "Boston",
+          "no_sub_title": "Boston",
+          "rules_primary": "If Boston wins the Portland Pioneers vs Boston professional baseball game, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T21:30:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000111" }
+        }
+      ]
+    },
+    {
+      "event_ticker": "KXMLBGAME-26JUN251700TORTB",
+      "series_ticker": "KXMLBGAME",
+      "title": "Toronto Blue Jays vs Tampa Bay Rays",
+      "sub_title": "TOR vs TB (Jun 25)",
+      "product_metadata": { "competition": "Pro Baseball", "competition_scope": "Game" },
+      "markets": [
+        {
+          "ticker": "KXMLBGAME-26JUN251700TORTB-TOR",
+          "event_ticker": "KXMLBGAME-26JUN251700TORTB",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:59:30Z",
+          "updated_time": "2026-06-25T17:00:00Z",
+          "yes_sub_title": "Toronto Blue Jays",
+          "no_sub_title": "Toronto Blue Jays",
+          "rules_primary": "If Toronto Blue Jays wins the Toronto Blue Jays vs Tampa Bay Rays professional baseball game originally scheduled for Jun 25, 2026 at 5:00 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T21:00:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000141" }
+        },
+        {
+          "ticker": "KXMLBGAME-26JUN251700TORTB-TB",
+          "event_ticker": "KXMLBGAME-26JUN251700TORTB",
+          "status": "active",
+          "open_time": "2026-06-24T13:00:00Z",
+          "created_time": "2026-06-24T12:59:30Z",
+          "updated_time": "2026-06-25T17:00:00Z",
+          "yes_sub_title": "Tampa Bay Rays",
+          "no_sub_title": "Tampa Bay Rays",
+          "rules_primary": "If Tampa Bay Rays wins the Toronto Blue Jays vs Tampa Bay Rays professional baseball game originally scheduled for Jun 25, 2026 at 5:00 PM EDT, then the market resolves Yes.",
+          "occurrence_datetime": "2026-06-25T21:00:00Z",
+          "custom_strike": { "baseball_team": "11111111-aaaa-4aaa-8aaa-000000000139" }
+        }
+      ]
+    }
+  ]
+}
