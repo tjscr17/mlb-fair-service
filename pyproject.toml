@@ -18,7 +18,7 @@ dev = ["pytest>=8"]
 [project.scripts]
 mlb-fair = "mlb_fair.main:cli"
 
-[tool.hatchling.build.targets.wheel]
+[tool.hatch.build.targets.wheel]
 packages = ["src/mlb_fair"]
 
 [tool.pytest.ini_options]
