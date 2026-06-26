@@ -1,0 +1,145 @@
+{
+  "copyright": "mock",
+  "dates": [
+    {
+      "date": "2026-06-25",
+      "games": [
+        {
+          "gamePk": 778001,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T23:10:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Scheduled" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 48, "losses": 30, "pct": ".615" },
+              "team": { "id": 147, "name": "New York Yankees" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 41, "losses": 37, "pct": ".526" },
+              "team": { "id": 111, "name": "Boston Red Sox" }
+            }
+          },
+          "venue": { "id": 3, "name": "Fenway Park" },
+          "doubleHeader": "N",
+          "gameNumber": 1,
+          "scheduledInnings": 9
+        },
+
+        {
+          "gamePk": 778010,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T17:10:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Scheduled" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 44, "losses": 34, "pct": ".564" },
+              "team": { "id": 112, "name": "Chicago Cubs" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 39, "losses": 39, "pct": ".500" },
+              "team": { "id": 158, "name": "Milwaukee Brewers" }
+            }
+          },
+          "venue": { "id": 32, "name": "American Family Field" },
+          "doubleHeader": "S",
+          "gameNumber": 1,
+          "scheduledInnings": 9
+        },
+        {
+          "gamePk": 778011,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T23:10:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Scheduled" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 44, "losses": 34, "pct": ".564" },
+              "team": { "id": 112, "name": "Chicago Cubs" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 39, "losses": 39, "pct": ".500" },
+              "team": { "id": 158, "name": "Milwaukee Brewers" }
+            }
+          },
+          "venue": { "id": 32, "name": "American Family Field" },
+          "doubleHeader": "S",
+          "gameNumber": 2,
+          "scheduledInnings": 9
+        },
+
+        {
+          "gamePk": 778020,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T20:07:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Scheduled" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 50, "losses": 28, "pct": ".641" },
+              "team": { "id": 117, "name": "Houston Astros" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 30, "losses": 48, "pct": ".385" },
+              "team": { "id": 133, "name": "Athletics" }
+            }
+          },
+          "venue": { "id": 2529, "name": "Sutter Health Park" },
+          "doubleHeader": "Y",
+          "gameNumber": 1,
+          "scheduledInnings": 9
+        },
+        {
+          "gamePk": 778021,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T23:37:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Scheduled" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 50, "losses": 28, "pct": ".641" },
+              "team": { "id": 117, "name": "Houston Astros" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 30, "losses": 48, "pct": ".385" },
+              "team": { "id": 133, "name": "Athletics" }
+            }
+          },
+          "venue": { "id": 2529, "name": "Sutter Health Park" },
+          "doubleHeader": "Y",
+          "gameNumber": 2,
+          "scheduledInnings": 9
+        },
+
+        {
+          "gamePk": 778030,
+          "gameType": "R",
+          "season": "2026",
+          "gameDate": "2026-06-25T22:45:00Z",
+          "officialDate": "2026-06-25",
+          "status": { "detailedState": "Suspended" },
+          "teams": {
+            "away": {
+              "leagueRecord": { "wins": 46, "losses": 32, "pct": ".590" },
+              "team": { "id": 119, "name": "Los Angeles Dodgers" }
+            },
+            "home": {
+              "leagueRecord": { "wins": 43, "losses": 35, "pct": ".551" },
+              "team": { "id": 137, "name": "San Francisco Giants" }
+            }
+          },
+          "venue": { "id": 2395, "name": "Oracle Park" },
+          "doubleHeader": "N",
+          "gameNumber": 1,
+          "scheduledInnings": 9
+        }
+      ]
+    }
+  ]
+}
