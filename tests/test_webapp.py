@@ -7,6 +7,7 @@ exercised here.
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from webapp.app import app
@@ -33,6 +34,12 @@ def test_game_detail_mock():
     assert d["source_book"] == "pinnacle"
     assert {m["side"] for m in d["kalshi_markets"]} == {"home", "away"}
     assert d["links"]["mlb_gameday"].endswith("/778001")
+    # fair vs Kalshi YES price (the edge)
+    contracts = {m["side"]: m for m in d["kalshi_markets"]}
+    assert contracts["home"]["yes_price"] == pytest.approx(0.57)  # mid of 0.56/0.58
+    assert contracts["away"]["yes_price"] == pytest.approx(0.43)  # mid of 0.42/0.44
+    # BOS (home) fair ~0.58 > 0.57 market -> positive edge; NYY (away) the mirror
+    assert contracts["home"]["edge"] > 0 and contracts["away"]["edge"] < 0
 
 
 def test_game_detail_unknown_is_404():

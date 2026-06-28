@@ -113,6 +113,11 @@ class KalshiMarket(BaseModel):
     occurrence_datetime: Optional[datetime] = None
     custom_strike: dict = Field(default_factory=dict)  # e.g. {"baseball_team": "<kalshi-uuid>"}
     product_metadata: dict = Field(default_factory=dict)
+    # YES-side market prices (probabilities in [0,1]) — Kalshi quotes these in dollars.
+    # Used to compare our sportsbook fair against the live contract price (the edge).
+    yes_bid: Optional[float] = None
+    yes_ask: Optional[float] = None
+    last_price: Optional[float] = None
 
 
 class KalshiEvent(BaseModel):

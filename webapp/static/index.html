@@ -97,6 +97,8 @@
   table.books td.l, table.books th.l { text-align:left; }
   table.books tr.src td { background:#1f6feb1a; }
   table.books tr.consensus td { border-top:2px solid var(--line); font-weight:600; }
+  table.books td.pos { color:var(--green); font-weight:700; }
+  table.books td.neg { color:var(--red); font-weight:700; }
   .reg { font-size:10px; color:var(--muted); border:1px solid var(--line); border-radius:4px;
     padding:0 4px; margin-left:6px; }
   .src-tag { color:var(--accent); font-size:10px; font-weight:700; margin-left:6px; }
@@ -304,9 +306,19 @@ function modalHtml(d) {
   const noq = d.quotable ? "" : badge(`not quotable · ${d.spine_status}`, "b-noq");
   const L = d.links;
 
-  const contracts = d.kalshi_markets.map(m =>
-    `<a href="${m.url}" target="_blank" rel="noopener">${m.ticker}<br><span class="yes">YES → ${m.team}</span> (${m.side})</a>`
-  ).join("");
+  const fmtEdge = e => e == null ? "—" : (e >= 0 ? "+" : "−") + Math.abs(e * 100).toFixed(1) + "¢";
+  const contractsRows = d.kalshi_markets.map(m => {
+    const cls = m.edge == null ? "" : (m.edge >= 0 ? "pos" : "neg");
+    return `<tr>
+      <td class="l"><span class="yes">${m.team}</span> <span style="color:var(--muted)">(${m.side})</span></td>
+      <td>${m.yes_price == null ? "—" : fmtPct(m.yes_price)}</td>
+      <td>${m.fair == null ? "—" : fmtPct(m.fair)}</td>
+      <td class="${cls}">${fmtEdge(m.edge)}</td>
+      <td><a href="${m.url}" target="_blank" rel="noopener">↗</a></td></tr>`;
+  }).join("");
+  const contractsTbl = `<table class="books">
+    <tr><th class="l">YES contract</th><th>Kalshi YES</th><th>our fair</th><th>edge</th><th></th></tr>
+    ${contractsRows}</table>`;
 
   let booksTbl = `<p class="sub">no sportsbook odds mapped to this game.</p>`;
   if (d.books.length) {
@@ -345,8 +357,8 @@ function modalHtml(d) {
       <a href="${L.statsapi}" target="_blank" rel="noopener">StatsAPI feed ↗</a>
     </div>
 
-    <div class="mh">Kalshi contracts (YES side resolved from the spine)</div>
-    <div class="kc">${contracts}</div>
+    <div class="mh">Kalshi contracts — our fair vs market YES price (edge = fair − market)</div>
+    ${contractsTbl}
 
     <div class="mh">Sportsbook odds → de-vigged fair (method: ${d.method})</div>
     ${booksTbl}

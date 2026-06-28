@@ -58,7 +58,7 @@ CONFIG = Config.from_env()
 
 # Live pipeline cache — protects the shared OpticOdds key: every /api/slate and
 # /api/game within the TTL reuses one upstream fetch instead of re-hitting the API.
-_LIVE_TTL_S = 45.0
+_LIVE_TTL_S = 300.0  # 5 min — gentle on the shared key; lines barely move pre-game
 _live_cache: dict[str, tuple[float, tuple]] = {}
 
 DH_LABEL = {"N": "single", "S": "split-DH", "Y": "straight-DH"}
@@ -209,6 +209,15 @@ def _resolve_mode(mode: str | None) -> str:
     return mode if mode in ("mock", "live") else CONFIG.mode
 
 
+def _yes_price(market) -> float | None:
+    """Kalshi YES implied prob: bid/ask mid, else last trade, else a one-sided quote."""
+    if market is None:
+        return None
+    if market.yes_bid and market.yes_ask:
+        return (market.yes_bid + market.yes_ask) / 2
+    return market.last_price or market.yes_ask or market.yes_bid
+
+
 @app.get("/api/slate")
 def slate(mode: str | None = None) -> JSONResponse:
     m = _resolve_mode(mode)
@@ -233,7 +242,7 @@ def api_devig(home: float, away: float, method: str = "multiplicative") -> JSONR
 @app.get("/api/game/{game_pk}")
 def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None = None) -> JSONResponse:
     """Full detail for one mapped game: source links, Kalshi contracts, per-book odds + fairs."""
-    reg, _results, _ev, odds_by_pk = _pipeline(_resolve_mode(mode))
+    reg, _results, ev_by_ticker, odds_by_pk = _pipeline(_resolve_mode(mode))
     fx = reg.get(game_pk)
     if fx is None or not fx.is_bound or fx.binding is None:
         return JSONResponse({"error": f"no bound fixture for gamePk {game_pk}"}, status_code=404)
@@ -241,17 +250,8 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
     s = fx.spine
     b = fx.binding
     name_by_id = {s.home.id: s.home.name, s.away.id: s.away.name}
-
-    kalshi_markets = [
-        {
-            "ticker": ticker,
-            "team_id": tid,
-            "team": name_by_id.get(tid, str(tid)),
-            "side": "home" if tid == s.home.id else "away",
-            "url": f"https://kalshi.com/markets/{ticker}",
-        }
-        for ticker, tid in b.market_yes.items()
-    ]
+    event = ev_by_ticker.get(b.event_ticker)
+    mkt_by_ticker = {m.ticker: m for m in (event.markets if event else [])}
 
     books: list[dict] = []
     oe = odds_by_pk.get(game_pk)
@@ -285,6 +285,33 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
         }
     present = {x["book"] for x in books}
     source_book = next((p for p in FAILOVER_PRIORITY if p in present), books[0]["book"] if books else None)
+
+    # Fair basis for the edge: consensus if available, else the reference book.
+    if consensus:
+        basis_home, basis_away = consensus["fair_home"], consensus["fair_away"]
+    elif books:
+        src = next((x for x in books if x["book"] == source_book), books[0])
+        basis_home, basis_away = src["fair_home"], src["fair_away"]
+    else:
+        basis_home = basis_away = None
+
+    kalshi_markets = []
+    for ticker, tid in b.market_yes.items():
+        side = "home" if tid == s.home.id else "away"
+        fair_team = basis_home if side == "home" else basis_away
+        yes = _yes_price(mkt_by_ticker.get(ticker))
+        kalshi_markets.append(
+            {
+                "ticker": ticker,
+                "team_id": tid,
+                "team": name_by_id.get(tid, str(tid)),
+                "side": side,
+                "url": f"https://kalshi.com/markets/{ticker}",
+                "yes_price": yes,  # Kalshi YES mid (implied prob)
+                "fair": fair_team,  # our sportsbook fair for this team
+                "edge": (fair_team - yes) if (fair_team is not None and yes is not None) else None,
+            }
+        )
 
     return JSONResponse(
         {

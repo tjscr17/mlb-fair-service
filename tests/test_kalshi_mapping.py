@@ -91,6 +91,8 @@ def test_parser_matches_live_shape():
     assert m.occurrence_datetime.tzinfo is not None
     # yes/no subtitles are the SAME team within a market (binary "does TEAM win?")
     assert m.yes_sub_title == m.no_sub_title
+    # YES-side market prices parse from *_dollars
+    assert m.yes_bid is not None and m.yes_ask is not None
 
 
 def _by_ticker_events(events) -> dict:

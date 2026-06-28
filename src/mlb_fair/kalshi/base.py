@@ -21,6 +21,17 @@ def _parse_dt(value: Optional[str]) -> Optional[datetime]:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
+def _money(value) -> Optional[float]:
+    """Kalshi dollar price string ("0.4800") -> float prob; None/blank/0.0 -> None."""
+    if value in (None, ""):
+        return None
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return f if f > 0 else None
+
+
 def _parse_market(m: dict) -> KalshiMarket:
     return KalshiMarket(
         ticker=m["ticker"],
@@ -36,6 +47,9 @@ def _parse_market(m: dict) -> KalshiMarket:
         occurrence_datetime=_parse_dt(m.get("occurrence_datetime")),
         custom_strike=m.get("custom_strike") or {},
         product_metadata=m.get("product_metadata") or {},
+        yes_bid=_money(m.get("yes_bid_dollars")),
+        yes_ask=_money(m.get("yes_ask_dollars")),
+        last_price=_money(m.get("last_price_dollars")),
     )
 
 

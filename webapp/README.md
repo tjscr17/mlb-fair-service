@@ -63,17 +63,21 @@ There is **no separate JS/CSS file** — it's all inline in `index.html`. Keep i
   `{home, away, overround, method}` or `{error}` (HTTP 400) on bad input.
 - **`GET /api/game/{game_pk}?method=`** — full detail for one mapped game (404 if the gamePk
   isn't a bound fixture). Returns: matchup + badges fields, `links` (`kalshi`, `mlb_gameday`,
-  `statsapi`), `kalshi_markets` (per contract: `ticker`, `team`, `side`, `url`), `books`
-  (per book: `home_price`/`away_price`, `last_update`, de-vigged `fair_home`/`fair_away`,
+  `statsapi`), `kalshi_markets` (per contract: `ticker`, `team`, `side`, `url`, plus `yes_price`
+  = Kalshi YES mid via `_yes_price()`, `fair` = our fair for that team, `edge` = `fair − yes_price`),
+  `books` (per book: `home_price`/`away_price`, `last_update`, de-vigged `fair_home`/`fair_away`,
   `hold`, `region`, `url`), `consensus` (median fair), and `source_book` (first present in
-  `FAILOVER_PRIORITY` — the "REF" book; full band-staleness selection is P3b).
+  `FAILOVER_PRIORITY` — the "REF" book; full band-staleness selection is P3b). The edge's `fair`
+  basis is the consensus, or the reference book when there's no consensus.
 - **`_pipeline(mode)` / `_apipeline(mode)`** — runs spine → Kalshi join → odds join once.
   `mode="mock"` uses bundled fixtures + the fixed `SLATE_DATE`; `mode="live"` uses
-  `StatsApiSchedule` + `LiveKalshiEvents` over a today-anchored `window_days` range. Odds stay
-  mock in both modes (no key yet) — so in **live** mode they don't join (different gamePks) and
-  the detail view shows no books, by design. `/api/slate` and `/api/game` take `?mode=mock|live`
-  (default `CONFIG.mode` from `MLB_MODE`); `_resolve_mode()` validates it. Live failures return
-  502/`{error}` so the page degrades instead of 500ing.
+  `StatsApiSchedule` + `LiveKalshiEvents` over a today-anchored `window_days` range, and **OpticOdds**
+  (`LiveOpticOdds`) for sportsbook odds when `OPTIC_ODDS_API_KEY` is set (else mock, which won't
+  join). `/api/slate` and `/api/game` take `?mode=mock|live` (default `CONFIG.mode` from `MLB_MODE`);
+  `_resolve_mode()` validates it. Live failures return 502/`{error}` so the page degrades not 500s.
+- **Live cache** — `_pipeline` caches the live result for `_LIVE_TTL_S` (5 min) so repeated slate +
+  detail requests reuse one upstream fetch. **This protects the shared OpticOdds key** — without it,
+  every page load and modal open would re-hit the API.
 - **`BOOK_META`** — per-book title/region/site link. **`FAILOVER_PRIORITY`** — sharpness order
   used only to pick the reference book for display.
 - **`DEFAULT_ODDS`** — seed odds for the *list-view* cards (the modal uses real per-book odds).
