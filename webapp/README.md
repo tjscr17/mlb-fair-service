@@ -29,6 +29,8 @@ that's the design point the detail modal exists to show.
 | `webapp/static/index.html` | the whole frontend (inline CSS + vanilla JS, no build step) — list view + detail modal | any visual / interaction change |
 | `src/mlb_fair/odds/{base,mock,mapping}.py` | odds source (The Odds API shape), mock loader, and odds→gamePk join | changing how books are parsed/joined |
 | `data/mock_odds.json` | mock sportsbook odds (The Odds API v4 shape) for the 6 games | adding/removing books or games, tweaking prices/timestamps |
+| `src/mlb_fair/spine/statsapi.py` | **live** MLB schedule client (public, no key) | live spine fetch issues |
+| `src/mlb_fair/kalshi/client.py` | **live** Kalshi listing client (series discovery + events poll) | live Kalshi fetch issues |
 | `webapp/__init__.py` | re-exports `app` so `uvicorn webapp:app` works | rarely |
 | `api/index.py` | Vercel ASGI entry (adds `src/` + root to `sys.path`, imports `app`) | only for deploy-path issues |
 | `vercel.json` | rewrites all routes → the function; `includeFiles` ships `src/`,`webapp/`,`data/` | adding bundled files/dirs |
@@ -65,7 +67,13 @@ There is **no separate JS/CSS file** — it's all inline in `index.html`. Keep i
   (per book: `home_price`/`away_price`, `last_update`, de-vigged `fair_home`/`fair_away`,
   `hold`, `region`, `url`), `consensus` (median fair), and `source_book` (first present in
   `FAILOVER_PRIORITY` — the "REF" book; full band-staleness selection is P3b).
-- **`_pipeline()`** — runs spine → Kalshi join → odds join once; both endpoints call it.
+- **`_pipeline(mode)` / `_apipeline(mode)`** — runs spine → Kalshi join → odds join once.
+  `mode="mock"` uses bundled fixtures + the fixed `SLATE_DATE`; `mode="live"` uses
+  `StatsApiSchedule` + `LiveKalshiEvents` over a today-anchored `window_days` range. Odds stay
+  mock in both modes (no key yet) — so in **live** mode they don't join (different gamePks) and
+  the detail view shows no books, by design. `/api/slate` and `/api/game` take `?mode=mock|live`
+  (default `CONFIG.mode` from `MLB_MODE`); `_resolve_mode()` validates it. Live failures return
+  502/`{error}` so the page degrades instead of 500ing.
 - **`BOOK_META`** — per-book title/region/site link. **`FAILOVER_PRIORITY`** — sharpness order
   used only to pick the reference book for display.
 - **`DEFAULT_ODDS`** — seed odds for the *list-view* cards (the modal uses real per-book odds).
@@ -79,7 +87,7 @@ Layout (top → bottom), each tied to the function that builds it:
 |------------|--------|----------|
 | Title + one-line description | — | static markup |
 | Stat chips (date, spine, events, mapped, quotable) | `#chips` | `render()` |
-| Controls: de-vig method `<select>` + badge legend | `#method` | static markup |
+| Controls: data `mock|live` toggle + de-vig method `<select>` + legend | `#mode`, `#method` | static markup |
 | **Bound game cards** | `#bound` | `render()` → `boundCard(row)` |
 | **Fail-safe section** (pending/unmatched) | `#failsafe` (wrap `#failsafe-wrap`) | `render()` → `failCard(row)` |
 | Collapsible spine table | `#spine` | `render()` |
@@ -89,8 +97,12 @@ Layout (top → bottom), each tied to the function that builds it:
 Each bound card has a **`view detail · N books ▸`** button (`[data-more]`) → `openModal(pk)`.
 
 Key JS functions:
-- **`render()`** — fetches `/api/slate` (the only call on load), fills every section, wires
-  inputs, and triggers the first fair computation per card.
+- **`init()` / `loadSlate()` / `currentMode()`** — `init()` wires the `#method` and `#mode`
+  listeners once, then `loadSlate()` fetches `/api/slate?mode=…`, handles errors/empty slates, and
+  calls `render()`. Changing `#mode` re-loads; changing `#method` recomputes cards + open modal.
+- **`render()`** — fills every section from `SLATE`, wires per-card inputs + detail buttons, and
+  triggers the first fair computation per card. (Global listeners live in `init()`, not here, so
+  re-renders don't stack handlers.)
 - **`boundCard(row)`** — HTML for one bound game: matchup, `gamePk · G#`, DH badge,
   confidence badge, and (if `!quotable`) a `not quotable · <status>` badge. Two `<input>`s
   (`.o-away`, `.o-home`) + a fair-bars block (`.bar-home`, `.bar-away`) + `.hold` line.

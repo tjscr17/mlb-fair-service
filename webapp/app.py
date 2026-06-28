@@ -12,21 +12,26 @@ from __future__ import annotations
 
 import asyncio
 import statistics
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from mlb_fair.config import Config
 from mlb_fair.engine.registry import FixtureRegistry
+from mlb_fair.kalshi.client import LiveKalshiEvents
 from mlb_fair.kalshi.mapping import apply, map_events
 from mlb_fair.kalshi.mock import MockKalshiEvents
 from mlb_fair.odds.devig import devig
 from mlb_fair.odds.mapping import map_odds
 from mlb_fair.odds.mock import MockOdds
 from mlb_fair.spine.mock import MockSchedule
+from mlb_fair.spine.statsapi import StatsApiSchedule
 
 STATIC = Path(__file__).resolve().parent / "static"
-SLATE_DATE = "2026-06-25"
+SLATE_DATE = "2026-06-25"  # the mock slate's single day
+CONFIG = Config.from_env()
 
 DH_LABEL = {"N": "single", "S": "split-DH", "Y": "straight-DH"}
 
@@ -55,26 +60,48 @@ DEFAULT_ODDS: dict[int, tuple[int, int]] = {
 _STATUS_ORDER = {"bound": 0, "pending": 1, "unmatched": 2}
 
 
-def _pipeline():
-    """Run the whole mock pipeline once: spine -> Kalshi join -> odds join.
+async def _apipeline(mode: str):
+    """Run the whole pipeline once: spine -> Kalshi join -> odds join.
+
+    mode="mock": bundled fixtures (the always-full demo slate).
+    mode="live": real MLB schedule (StatsAPI) + real Kalshi MLB markets. Odds stay
+    mock until an ODDS_API_KEY is wired, so in live mode they simply won't join
+    (different gamePks) and the detail view shows no books — by design, not a bug.
 
     Returns (registry, kalshi_results, events_by_ticker, odds_by_gamepk).
     """
-    games = asyncio.run(MockSchedule().fetch(SLATE_DATE, SLATE_DATE))
-    reg = FixtureRegistry()
-    reg.upsert_spine(games)
+    if mode == "live":
+        sched, kalshi = StatsApiSchedule(), LiveKalshiEvents()
+        today = datetime.now(timezone.utc).date()
+        start, end = today.isoformat(), (today + timedelta(days=CONFIG.window_days - 1)).isoformat()
+    else:
+        sched, kalshi = MockSchedule(), MockKalshiEvents()
+        start = end = SLATE_DATE
+    odds_src = MockOdds()  # odds always mock for now (no key)
 
-    events = asyncio.run(MockKalshiEvents().fetch())
-    results = map_events(events, reg)
-    apply(results, reg)
+    try:
+        reg = FixtureRegistry()
+        reg.upsert_spine(await sched.fetch(start, end))
+        events = await kalshi.fetch()
+        results = map_events(events, reg)
+        apply(results, reg)
+        odds_by_pk = map_odds(await odds_src.fetch(), reg)
+        return reg, results, {e.event_ticker: e for e in events}, odds_by_pk
+    finally:
+        for src in (sched, kalshi, odds_src):
+            try:
+                await src.aclose()
+            except Exception:
+                pass
 
-    odds_by_pk = map_odds(asyncio.run(MockOdds().fetch()), reg)
-    return reg, results, {e.event_ticker: e for e in events}, odds_by_pk
+
+def _pipeline(mode: str = "mock"):
+    return asyncio.run(_apipeline(mode))
 
 
-def build_slate() -> dict:
-    """Run the full mock pipeline and shape it for the UI."""
-    reg, results, ev_by_ticker, odds_by_pk = _pipeline()
+def build_slate(mode: str = "mock") -> dict:
+    """Run the full pipeline and shape it for the UI."""
+    reg, results, ev_by_ticker, odds_by_pk = _pipeline(mode)
     rows: list[dict] = []
     for r in results:
         ev = ev_by_ticker.get(r.event_ticker)
@@ -123,9 +150,10 @@ def build_slate() -> dict:
     ]
 
     return {
-        "slate_date": SLATE_DATE,
+        "mode": mode,
+        "slate_date": datetime.now(timezone.utc).date().isoformat() if mode == "live" else SLATE_DATE,
         "spine_count": len(spine),
-        "events_count": len(events),
+        "events_count": len(ev_by_ticker),
         "bound_count": sum(1 for r in rows if r["status"] == "bound"),
         "quotable_count": len(reg.quotable()),
         "spine": spine,
@@ -136,9 +164,17 @@ def build_slate() -> dict:
 app = FastAPI(title="MLB Fair-Value Demo")
 
 
+def _resolve_mode(mode: str | None) -> str:
+    return mode if mode in ("mock", "live") else CONFIG.mode
+
+
 @app.get("/api/slate")
-def slate() -> JSONResponse:
-    return JSONResponse(build_slate())
+def slate(mode: str | None = None) -> JSONResponse:
+    m = _resolve_mode(mode)
+    try:
+        return JSONResponse(build_slate(m))
+    except Exception as exc:  # live source down -> tell the UI, don't 500
+        return JSONResponse({"mode": m, "error": f"{type(exc).__name__}: {exc}"}, status_code=502)
 
 
 @app.get("/api/devig")
@@ -154,9 +190,9 @@ def api_devig(home: float, away: float, method: str = "multiplicative") -> JSONR
 
 
 @app.get("/api/game/{game_pk}")
-def game_detail(game_pk: int, method: str = "multiplicative") -> JSONResponse:
+def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None = None) -> JSONResponse:
     """Full detail for one mapped game: source links, Kalshi contracts, per-book odds + fairs."""
-    reg, _results, _ev, odds_by_pk = _pipeline()
+    reg, _results, _ev, odds_by_pk = _pipeline(_resolve_mode(mode))
     fx = reg.get(game_pk)
     if fx is None or not fx.is_bound or fx.binding is None:
         return JSONResponse({"error": f"no bound fixture for gamePk {game_pk}"}, status_code=404)

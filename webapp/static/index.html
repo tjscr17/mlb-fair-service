@@ -112,6 +112,11 @@
   <div class="chips" id="chips"></div>
 
   <div class="controls">
+    <label for="mode">Data</label>
+    <select id="mode">
+      <option value="mock">mock slate</option>
+      <option value="live">live · MLB + Kalshi</option>
+    </select>
     <label for="method">De-vig method</label>
     <select id="method">
       <option value="multiplicative">multiplicative (default)</option>
@@ -248,11 +253,14 @@ function render() {
 
   const bound = s.results.filter(r => r.status === "bound");
   const fails = s.results.filter(r => r.status !== "bound");
-  document.getElementById("bound").innerHTML = bound.map(boundCard).join("");
-  if (fails.length) {
-    document.getElementById("failsafe-wrap").style.display = "";
-    document.getElementById("failsafe").innerHTML = fails.map(failCard).join("");
-  }
+  document.getElementById("bound").innerHTML = bound.length
+    ? bound.map(boundCard).join("")
+    : `<p class="sub">No games mapped${s.mode === "live"
+        ? " — no MLB games are currently listed on Kalshi (live lists ~5 days out, mostly on game days)."
+        : "."}</p>`;
+  const fsWrap = document.getElementById("failsafe-wrap");
+  fsWrap.style.display = fails.length ? "" : "none";
+  document.getElementById("failsafe").innerHTML = fails.map(failCard).join("");
   document.getElementById("spine").innerHTML =
     `<tr><th>gamePk</th><th>matchup</th><th>game</th><th>type</th><th>status</th></tr>` +
     s.spine.map(g => `<tr><td class="pk">${g.game_pk}</td><td>${g.away} @ ${g.home}</td>
@@ -265,10 +273,6 @@ function render() {
   });
   document.querySelectorAll("[data-more]").forEach(btn =>
     btn.addEventListener("click", () => openModal(+btn.dataset.more)));
-  document.getElementById("method").addEventListener("change", () => {
-    document.querySelectorAll(".card[data-pk]").forEach(recompute);
-    if (MODAL_PK != null) openModal(MODAL_PK);  // keep modal in sync with method
-  });
 }
 
 /* ---------- detail modal ---------- */
@@ -278,12 +282,18 @@ const overlay = document.getElementById("overlay");
 async function openModal(pk) {
   MODAL_PK = pk;
   const method = document.getElementById("method").value;
+  const mode = currentMode();
   const modal = document.getElementById("modal");
   modal.innerHTML = `<button class="x" onclick="closeModal()">×</button><p class="sub">loading…</p>`;
   overlay.classList.add("open");
-  const d = await fetch(`/api/game/${pk}?method=${encodeURIComponent(method)}`).then(r => r.json());
-  if (d.error) { modal.innerHTML = `<button class="x" onclick="closeModal()">×</button><p class="err">${d.error}</p>`; return; }
-  modal.innerHTML = modalHtml(d);
+  try {
+    const d = await fetch(`/api/game/${pk}?method=${encodeURIComponent(method)}&mode=${mode}`).then(r => r.json());
+    modal.innerHTML = d.error
+      ? `<button class="x" onclick="closeModal()">×</button><p class="err">${d.error}</p>`
+      : modalHtml(d);
+  } catch (e) {
+    modal.innerHTML = `<button class="x" onclick="closeModal()">×</button><p class="err">failed to load: ${e.message}</p>`;
+  }
 }
 function closeModal() { overlay.classList.remove("open"); MODAL_PK = null; }
 overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
@@ -346,7 +356,31 @@ function modalHtml(d) {
     selection is a later phase). Links use live URL formats; mock IDs won't resolve.</p>`;
 }
 
-fetch("/api/slate").then(r => r.json()).then(d => { SLATE = d; render(); });
+/* ---------- bootstrap ---------- */
+function currentMode() { return document.getElementById("mode").value; }
+
+async function loadSlate() {
+  const boundEl = document.getElementById("bound");
+  boundEl.innerHTML = `<p class="sub">loading ${currentMode()} slate…</p>`;
+  document.getElementById("failsafe-wrap").style.display = "none";
+  try {
+    const d = await fetch(`/api/slate?mode=${currentMode()}`).then(r => r.json());
+    if (d.error) { boundEl.innerHTML = `<p class="err">live data error: ${d.error}</p>`; return; }
+    SLATE = d; render();
+  } catch (e) {
+    boundEl.innerHTML = `<p class="err">failed to load slate: ${e.message}</p>`;
+  }
+}
+
+function init() {
+  document.getElementById("method").addEventListener("change", () => {
+    document.querySelectorAll(".card[data-pk]").forEach(recompute);
+    if (MODAL_PK != null) openModal(MODAL_PK);  // keep modal in sync with method
+  });
+  document.getElementById("mode").addEventListener("change", () => { closeModal(); loadSlate(); });
+  loadSlate();
+}
+init();
 </script>
 </body>
 </html>
