@@ -1,0 +1,151 @@
+[
+  {
+    "id": "odds-nyy-bos",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T23:10:00Z",
+    "home_team": "Boston Red Sox",
+    "away_team": "New York Yankees",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T22:58:40Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:58:40Z", "outcomes": [
+          { "name": "Boston Red Sox", "price": -148 }, { "name": "New York Yankees", "price": 134 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T22:57:10Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:57:10Z", "outcomes": [
+          { "name": "Boston Red Sox", "price": -150 }, { "name": "New York Yankees", "price": 130 } ] } ]
+      },
+      {
+        "key": "fanduel", "title": "FanDuel", "last_update": "2026-06-25T22:56:30Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:56:30Z", "outcomes": [
+          { "name": "Boston Red Sox", "price": -145 }, { "name": "New York Yankees", "price": 124 } ] } ]
+      },
+      {
+        "key": "betmgm", "title": "BetMGM", "last_update": "2026-06-25T22:55:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:55:00Z", "outcomes": [
+          { "name": "Boston Red Sox", "price": -152 }, { "name": "New York Yankees", "price": 136 } ] } ]
+      }
+    ]
+  },
+  {
+    "id": "odds-chc-mil-g1",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T17:10:00Z",
+    "home_team": "Milwaukee Brewers",
+    "away_team": "Chicago Cubs",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T16:58:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T16:58:00Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -118 }, { "name": "Chicago Cubs", "price": 104 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T16:57:20Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T16:57:20Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -120 }, { "name": "Chicago Cubs", "price": 100 } ] } ]
+      },
+      {
+        "key": "circa", "title": "Circa", "last_update": "2026-06-25T16:59:10Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T16:59:10Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -117 }, { "name": "Chicago Cubs", "price": 105 } ] } ]
+      },
+      {
+        "key": "fanduel", "title": "FanDuel", "last_update": "2026-06-25T16:55:40Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T16:55:40Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -122 }, { "name": "Chicago Cubs", "price": 102 } ] } ]
+      }
+    ]
+  },
+  {
+    "id": "odds-chc-mil-g2",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T23:10:00Z",
+    "home_team": "Milwaukee Brewers",
+    "away_team": "Chicago Cubs",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T22:50:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:50:00Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -110 }, { "name": "Chicago Cubs", "price": -102 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T22:49:30Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:49:30Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -112 }, { "name": "Chicago Cubs", "price": -100 } ] } ]
+      },
+      {
+        "key": "betmgm", "title": "BetMGM", "last_update": "2026-06-25T22:48:10Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:48:10Z", "outcomes": [
+          { "name": "Milwaukee Brewers", "price": -108 }, { "name": "Chicago Cubs", "price": -104 } ] } ]
+      }
+    ]
+  },
+  {
+    "id": "odds-hou-ath-g1",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T20:07:00Z",
+    "home_team": "Athletics",
+    "away_team": "Houston Astros",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T19:55:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T19:55:00Z", "outcomes": [
+          { "name": "Athletics", "price": 172 }, { "name": "Houston Astros", "price": -198 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T19:54:20Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T19:54:20Z", "outcomes": [
+          { "name": "Athletics", "price": 165 }, { "name": "Houston Astros", "price": -200 } ] } ]
+      },
+      {
+        "key": "fanduel", "title": "FanDuel", "last_update": "2026-06-25T19:53:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T19:53:00Z", "outcomes": [
+          { "name": "Athletics", "price": 170 }, { "name": "Houston Astros", "price": -205 } ] } ]
+      },
+      {
+        "key": "betmgm", "title": "BetMGM", "last_update": "2026-06-25T19:51:30Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T19:51:30Z", "outcomes": [
+          { "name": "Athletics", "price": 168 }, { "name": "Houston Astros", "price": -202 } ] } ]
+      }
+    ]
+  },
+  {
+    "id": "odds-hou-ath-g2",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T23:37:00Z",
+    "home_team": "Athletics",
+    "away_team": "Houston Astros",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T23:25:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T23:25:00Z", "outcomes": [
+          { "name": "Athletics", "price": 158 }, { "name": "Houston Astros", "price": -180 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T23:24:10Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T23:24:10Z", "outcomes": [
+          { "name": "Athletics", "price": 155 }, { "name": "Houston Astros", "price": -185 } ] } ]
+      }
+    ]
+  },
+  {
+    "id": "odds-lad-sf",
+    "sport_key": "baseball_mlb",
+    "commence_time": "2026-06-25T22:45:00Z",
+    "home_team": "San Francisco Giants",
+    "away_team": "Los Angeles Dodgers",
+    "bookmakers": [
+      {
+        "key": "pinnacle", "title": "Pinnacle", "last_update": "2026-06-25T22:33:00Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:33:00Z", "outcomes": [
+          { "name": "San Francisco Giants", "price": 118 }, { "name": "Los Angeles Dodgers", "price": -134 } ] } ]
+      },
+      {
+        "key": "draftkings", "title": "DraftKings", "last_update": "2026-06-25T22:31:40Z",
+        "markets": [ { "key": "h2h", "last_update": "2026-06-25T22:31:40Z", "outcomes": [
+          { "name": "San Francisco Giants", "price": 115 }, { "name": "Los Angeles Dodgers", "price": -135 } ] } ]
+      }
+    ]
+  }
+]

@@ -10,20 +10,25 @@ A thin FastAPI layer over the *real* service code (no logic is reimplemented for
 demo). It runs the mock slate through the actual pipeline and serves a single page:
 
 ```
-mock fixtures ──▶ spine + registry ──▶ Kalshi field-level mapping ──▶ two-way de-vig
- (data/*.json)     (engine/registry)     (kalshi/mapping.py)           (odds/devig.py)
+mock fixtures ──▶ spine + registry ──▶ Kalshi mapping ──▶ gamePk join ◀── odds mapping ◀── mock odds
+ (data/*.json)     (engine/registry)    (kalshi/mapping)   (both sides)    (odds/mapping)   (data/mock_odds.json)
+                                   │                                  │
+                          webapp/app.py  _pipeline()  ──▶  GET /api/slate (list view)
+                                   │                  ──▶  GET /api/game/{pk} (detail: links + per-book odds)
                                    │
-                          webapp/app.py  build_slate()  ──▶  GET /api/slate (JSON)
-                                   │
-                          webapp/static/index.html  ──▶  renders + calls GET /api/devig live
+                          webapp/static/index.html ──▶ list + live /api/devig + click-through detail modal
 ```
+Both Kalshi *and* the sportsbook are joined to `gamePk` independently (never to each other) —
+that's the design point the detail modal exists to show.
 
 ## File map
 
 | File | Role | Edit here when… |
 |------|------|-----------------|
-| `webapp/app.py` | FastAPI app: `build_slate()`, routes `/api/slate`, `/api/devig`, `/` | changing what data the UI receives, default odds, adding an endpoint |
-| `webapp/static/index.html` | the whole frontend (inline CSS + vanilla JS, no build step) | any visual / interaction change |
+| `webapp/app.py` | FastAPI app: `_pipeline()`, `build_slate()`, routes `/api/slate`, `/api/game/{pk}`, `/api/devig`, `/`; `BOOK_META`, `FAILOVER_PRIORITY` | changing data the UI receives, default odds, book links, adding an endpoint |
+| `webapp/static/index.html` | the whole frontend (inline CSS + vanilla JS, no build step) — list view + detail modal | any visual / interaction change |
+| `src/mlb_fair/odds/{base,mock,mapping}.py` | odds source (The Odds API shape), mock loader, and odds→gamePk join | changing how books are parsed/joined |
+| `data/mock_odds.json` | mock sportsbook odds (The Odds API v4 shape) for the 6 games | adding/removing books or games, tweaking prices/timestamps |
 | `webapp/__init__.py` | re-exports `app` so `uvicorn webapp:app` works | rarely |
 | `api/index.py` | Vercel ASGI entry (adds `src/` + root to `sys.path`, imports `app`) | only for deploy-path issues |
 | `vercel.json` | rewrites all routes → the function; `includeFiles` ships `src/`,`webapp/`,`data/` | adding bundled files/dirs |
@@ -54,6 +59,16 @@ There is **no separate JS/CSS file** — it's all inline in `index.html`. Keep i
   starting prices shown on each card.
 - **`GET /api/devig?home=&away=&method=`** — calls the real `devig()`; returns
   `{home, away, overround, method}` or `{error}` (HTTP 400) on bad input.
+- **`GET /api/game/{game_pk}?method=`** — full detail for one mapped game (404 if the gamePk
+  isn't a bound fixture). Returns: matchup + badges fields, `links` (`kalshi`, `mlb_gameday`,
+  `statsapi`), `kalshi_markets` (per contract: `ticker`, `team`, `side`, `url`), `books`
+  (per book: `home_price`/`away_price`, `last_update`, de-vigged `fair_home`/`fair_away`,
+  `hold`, `region`, `url`), `consensus` (median fair), and `source_book` (first present in
+  `FAILOVER_PRIORITY` — the "REF" book; full band-staleness selection is P3b).
+- **`_pipeline()`** — runs spine → Kalshi join → odds join once; both endpoints call it.
+- **`BOOK_META`** — per-book title/region/site link. **`FAILOVER_PRIORITY`** — sharpness order
+  used only to pick the reference book for display.
+- **`DEFAULT_ODDS`** — seed odds for the *list-view* cards (the modal uses real per-book odds).
 - **`SLATE_DATE`** — the single mock day everything is fetched for.
 
 ## Frontend: `webapp/static/index.html`
@@ -69,6 +84,9 @@ Layout (top → bottom), each tied to the function that builds it:
 | **Fail-safe section** (pending/unmatched) | `#failsafe` (wrap `#failsafe-wrap`) | `render()` → `failCard(row)` |
 | Collapsible spine table | `#spine` | `render()` |
 | Footer (design notes + endpoint names) | — | static markup |
+| **Detail modal** (overlay) | `#overlay` / `#modal` | `openModal(pk)` → `modalHtml(detail)` |
+
+Each bound card has a **`view detail · N books ▸`** button (`[data-more]`) → `openModal(pk)`.
 
 Key JS functions:
 - **`render()`** — fetches `/api/slate` (the only call on load), fills every section, wires
@@ -81,7 +99,11 @@ Key JS functions:
 - **`recompute(card)`** — reads the card's two odds inputs + current method, calls
   `/api/devig`, updates the two bars (width = probability) and the hold/`fair_yes` line.
 - **`debounce(fn, ms)`** — 180 ms debounce on odds typing so we don't spam the endpoint.
-- Method `<select>` `change` → recompute every card.
+- **`openModal(pk)` / `modalHtml(d)` / `closeModal()`** — fetch `/api/game/{pk}` and render the
+  detail (links, Kalshi contracts, per-book odds table with the REF row highlighted + consensus
+  row). Closes on ×, overlay click, or Esc. `MODAL_PK` tracks the open game.
+- Method `<select>` `change` → recompute every card **and** re-fetch the open modal (keeps the
+  per-book de-vig in sync with the selected method).
 
 ### Badge → CSS class map (for restyling)
 `exact`→`.b-exact` (green) · `ordinal`→`.b-ordinal` (blue) · `text`→`.b-text` (purple) ·
@@ -90,7 +112,12 @@ unmatched→`.b-unmatch` (red). Theme colors are CSS vars in `:root` at the top 
 
 ## Common edits — where to go
 
-- **Change starting odds for a game** → `DEFAULT_ODDS` in `app.py`.
+- **Change starting odds for a game** (list-view cards) → `DEFAULT_ODDS` in `app.py`.
+- **Change per-book odds / add a book / add a game** (modal) → `data/mock_odds.json` (The Odds
+  API shape); add display metadata + a posting link in `BOOK_META`.
+- **Change the reference-book pick** → `FAILOVER_PRIORITY` in `app.py`.
+- **Add a field to the detail modal** → add it to the `/api/game/{pk}` response in `app.py`,
+  then read it in `modalHtml()`.
 - **Add a field to each card** (e.g. venue, start time) → add it to the row dict in
   `build_slate()`, then read it in `boundCard()`.
 - **Restyle / re-theme** → CSS vars in `:root`, or the per-component classes in `<style>`.

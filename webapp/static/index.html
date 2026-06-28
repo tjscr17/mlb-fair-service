@@ -63,6 +63,44 @@
   summary { cursor:pointer; color:var(--muted); }
   .err { color:var(--red); }
   footer { color:var(--muted); font-size:12px; margin-top:36px; }
+
+  /* details button on each card */
+  .more { margin-top:12px; background:transparent; color:var(--accent); border:1px solid var(--line);
+    border-radius:6px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
+  .more:hover { border-color:var(--accent); background:#1f6feb22; }
+
+  /* modal */
+  .overlay { position:fixed; inset:0; background:#01040bcc; display:none;
+    align-items:flex-start; justify-content:center; padding:40px 16px; overflow:auto; z-index:50; }
+  .overlay.open { display:flex; }
+  .modal { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    width:100%; max-width:720px; padding:20px 22px; }
+  .modal h2 { margin:0 0 2px; font-size:18px; }
+  .modal .pk { display:block; margin-bottom:12px; }
+  .x { float:right; background:transparent; border:1px solid var(--line); color:var(--muted);
+    border-radius:6px; width:30px; height:30px; cursor:pointer; font-size:16px; }
+  .x:hover { color:var(--txt); border-color:var(--txt); }
+  .links { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
+  .links a { font-size:12px; padding:5px 10px; border:1px solid var(--line); border-radius:6px;
+    text-decoration:none; }
+  .links a:hover { border-color:var(--accent); }
+  .mh { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+    margin:16px 0 8px; }
+  .kc { display:flex; gap:8px; flex-wrap:wrap; }
+  .kc a { font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; padding:6px 10px;
+    border:1px solid var(--line); border-radius:6px; text-decoration:none; }
+  .kc .yes { color:var(--green); font-weight:700; }
+  table.books { width:100%; border-collapse:collapse; font-size:13px; }
+  table.books th, table.books td { padding:7px 9px; border-bottom:1px solid var(--line); text-align:right; }
+  table.books th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase;
+    letter-spacing:.04em; }
+  table.books td.l, table.books th.l { text-align:left; }
+  table.books tr.src td { background:#1f6feb1a; }
+  table.books tr.consensus td { border-top:2px solid var(--line); font-weight:600; }
+  .reg { font-size:10px; color:var(--muted); border:1px solid var(--line); border-radius:4px;
+    padding:0 4px; margin-left:6px; }
+  .src-tag { color:var(--accent); font-size:10px; font-weight:700; margin-left:6px; }
+  .note { color:var(--muted); font-size:11px; margin-top:12px; }
 </style>
 </head>
 <body>
@@ -108,6 +146,8 @@
     a one-to-one bijection guard. <code>GET /api/slate</code> · <code>GET /api/devig</code>
   </footer>
 </div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 
 <script>
 const fmtPct = x => (x*100).toFixed(1) + "%";
@@ -155,6 +195,7 @@ function boundCard(row) {
         <div class="hold"></div>
       </div>
     </div>
+    <button class="more" data-more="${row.game_pk}">view detail · ${row.book_count} book${row.book_count === 1 ? "" : "s"} ▸</button>
   </div>`;
 }
 
@@ -222,8 +263,87 @@ function render() {
     card.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => recalc(card)));
     recompute(card);
   });
-  document.getElementById("method").addEventListener("change", () =>
-    document.querySelectorAll(".card[data-pk]").forEach(recompute));
+  document.querySelectorAll("[data-more]").forEach(btn =>
+    btn.addEventListener("click", () => openModal(+btn.dataset.more)));
+  document.getElementById("method").addEventListener("change", () => {
+    document.querySelectorAll(".card[data-pk]").forEach(recompute);
+    if (MODAL_PK != null) openModal(MODAL_PK);  // keep modal in sync with method
+  });
+}
+
+/* ---------- detail modal ---------- */
+let MODAL_PK = null;
+const overlay = document.getElementById("overlay");
+
+async function openModal(pk) {
+  MODAL_PK = pk;
+  const method = document.getElementById("method").value;
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `<button class="x" onclick="closeModal()">×</button><p class="sub">loading…</p>`;
+  overlay.classList.add("open");
+  const d = await fetch(`/api/game/${pk}?method=${encodeURIComponent(method)}`).then(r => r.json());
+  if (d.error) { modal.innerHTML = `<button class="x" onclick="closeModal()">×</button><p class="err">${d.error}</p>`; return; }
+  modal.innerHTML = modalHtml(d);
+}
+function closeModal() { overlay.classList.remove("open"); MODAL_PK = null; }
+overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+function modalHtml(d) {
+  const cKls = { exact:"b-exact", ordinal:"b-ordinal", text:"b-text" }[d.confidence] || "b-exact";
+  const noq = d.quotable ? "" : badge(`not quotable · ${d.spine_status}`, "b-noq");
+  const L = d.links;
+
+  const contracts = d.kalshi_markets.map(m =>
+    `<a href="${m.url}" target="_blank" rel="noopener">${m.ticker}<br><span class="yes">YES → ${m.team}</span> (${m.side})</a>`
+  ).join("");
+
+  let booksTbl = `<p class="sub">no sportsbook odds mapped to this game.</p>`;
+  if (d.books.length) {
+    const rows = d.books.map(b => {
+      const isSrc = b.book === d.source_book;
+      const t = b.last_update ? new Date(b.last_update).toISOString().slice(11,19)+"Z" : "—";
+      return `<tr class="${isSrc ? "src" : ""}">
+        <td class="l">${b.title}<span class="reg">${b.region}</span>${isSrc ? '<span class="src-tag">REF</span>' : ""}
+          ${b.url ? ` <a href="${b.url}" target="_blank" rel="noopener" style="font-size:11px">↗</a>` : ""}</td>
+        <td>${american(b.away_price)}</td>
+        <td>${american(b.home_price)}</td>
+        <td>${fmtPct(b.fair_away)}</td>
+        <td>${fmtPct(b.fair_home)}</td>
+        <td>${fmtPct(b.hold)}</td>
+        <td>${t}</td></tr>`;
+    }).join("");
+    const c = d.consensus
+      ? `<tr class="consensus"><td class="l">consensus (median)</td><td></td><td></td>
+         <td>${fmtPct(d.consensus.fair_away)}</td><td>${fmtPct(d.consensus.fair_home)}</td><td></td><td></td></tr>`
+      : "";
+    booksTbl = `<table class="books">
+      <tr><th class="l">book</th><th>${d.away_team} ML</th><th>${d.home_team} ML</th>
+          <th>fair ${d.away_team.split(" ").pop()}</th><th>fair ${d.home_team.split(" ").pop()}</th>
+          <th>hold</th><th>updated</th></tr>
+      ${rows}${c}</table>`;
+  }
+
+  return `
+    <button class="x" onclick="closeModal()">×</button>
+    <h2>${d.away_team} @ ${d.home_team}</h2>
+    <span class="pk">gamePk ${d.game_pk} · G${d.game_number} ${badge(d.double_header,"b-dh")} ${badge(d.confidence,cKls)} ${noq}</span>
+
+    <div class="links">
+      <a href="${L.kalshi}" target="_blank" rel="noopener">Kalshi event ↗</a>
+      <a href="${L.mlb_gameday}" target="_blank" rel="noopener">MLB Gameday ↗</a>
+      <a href="${L.statsapi}" target="_blank" rel="noopener">StatsAPI feed ↗</a>
+    </div>
+
+    <div class="mh">Kalshi contracts (YES side resolved from the spine)</div>
+    <div class="kc">${contracts}</div>
+
+    <div class="mh">Sportsbook odds → de-vigged fair (method: ${d.method})</div>
+    ${booksTbl}
+
+    <p class="note">Both the Kalshi event and each sportsbook game are joined to <code>gamePk</code>
+    independently via the alias table. <b>REF</b> = sharpest available book (full band-staleness
+    selection is a later phase). Links use live URL formats; mock IDs won't resolve.</p>`;
 }
 
 fetch("/api/slate").then(r => r.json()).then(d => { SLATE = d; render(); });
