@@ -52,6 +52,12 @@ Layout (`src/mlb_fair/`):
   and what's in `product_metadata`, then build the field-level join against mocks.
 - THEN: P3b selection/band → P4 engine+scheduler+emit → P5 tests + README + DESIGN.md.
 
+## Demo UI
+- An interactive demo lives in `webapp/` (FastAPI over the real pipeline) + `api/`+`vercel.json`
+  for Vercel. **Before editing the webapp, read `webapp/README.md`** — it maps every UI element
+  to the code that produces it and lists where to make common changes. Keep that doc in sync with
+  any UI change (same edit). The UI must always call the real `map_events`/`devig`, never hardcode.
+
 ## Conventions
 - Python 3.11+, asyncio + httpx, pydantic v2. Mock-first: every external source is a Protocol with a
   Live* and Mock* impl using the **same schema**, so live swap is one line.
