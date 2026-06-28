@@ -209,6 +209,14 @@ def _resolve_mode(mode: str | None) -> str:
     return mode if mode in ("mock", "live") else CONFIG.mode
 
 
+def _kalshi_url(event_ticker: str, series_ticker: str | None = None) -> str:
+    """Public Kalshi event page, e.g.
+    https://kalshi.com/markets/kxmlbgame/professional-baseball-game/kxmlbgame-26jun291907nymtor
+    """
+    series = (series_ticker or "KXMLBGAME").lower()
+    return f"https://kalshi.com/markets/{series}/professional-baseball-game/{event_ticker.lower()}"
+
+
 def _yes_price(market) -> float | None:
     """Kalshi YES implied prob: bid/ask mid, else last trade, else a one-sided quote."""
     if market is None:
@@ -252,6 +260,7 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
     name_by_id = {s.home.id: s.home.name, s.away.id: s.away.name}
     event = ev_by_ticker.get(b.event_ticker)
     mkt_by_ticker = {m.ticker: m for m in (event.markets if event else [])}
+    kalshi_url = _kalshi_url(b.event_ticker, event.series_ticker if event else None)
 
     books: list[dict] = []
     oe = odds_by_pk.get(game_pk)
@@ -306,7 +315,7 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
                 "team_id": tid,
                 "team": name_by_id.get(tid, str(tid)),
                 "side": side,
-                "url": f"https://kalshi.com/markets/{ticker}",
+                "url": kalshi_url,
                 "yes_price": yes,  # Kalshi YES mid (implied prob)
                 "fair": fair_team,  # our sportsbook fair for this team
                 "edge": (fair_team - yes) if (fair_team is not None and yes is not None) else None,
@@ -329,7 +338,7 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
             "method": method,
             "event_ticker": b.event_ticker,
             "links": {
-                "kalshi": f"https://kalshi.com/markets/{b.event_ticker}",
+                "kalshi": kalshi_url,
                 "mlb_gameday": f"https://www.mlb.com/gameday/{s.game_pk}",
                 "statsapi": f"https://statsapi.mlb.com/api/v1.1/game/{s.game_pk}/feed/live",
             },
