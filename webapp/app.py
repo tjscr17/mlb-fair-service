@@ -11,7 +11,9 @@ Deploy:        see api/index.py + vercel.json
 from __future__ import annotations
 
 import asyncio
+import os
 import statistics
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -26,12 +28,38 @@ from mlb_fair.kalshi.mock import MockKalshiEvents
 from mlb_fair.odds.devig import devig
 from mlb_fair.odds.mapping import map_odds
 from mlb_fair.odds.mock import MockOdds
+from mlb_fair.odds.optic_odds import LiveOpticOdds
 from mlb_fair.spine.mock import MockSchedule
 from mlb_fair.spine.statsapi import StatsApiSchedule
+
+
+def _load_dotenv() -> None:
+    """Load repo-root .env into os.environ (without overriding real env vars).
+
+    Keeps the OpticOdds key out of the shell history / chat: it lives only in the
+    git-ignored .env. No dependency needed.
+    """
+    p = Path(__file__).resolve().parents[1] / ".env"
+    if not p.exists():
+        return
+    for line in p.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
 
 STATIC = Path(__file__).resolve().parent / "static"
 SLATE_DATE = "2026-06-25"  # the mock slate's single day
 CONFIG = Config.from_env()
+
+# Live pipeline cache — protects the shared OpticOdds key: every /api/slate and
+# /api/game within the TTL reuses one upstream fetch instead of re-hitting the API.
+_LIVE_TTL_S = 45.0
+_live_cache: dict[str, tuple[float, tuple]] = {}
 
 DH_LABEL = {"N": "single", "S": "split-DH", "Y": "straight-DH"}
 
@@ -43,9 +71,10 @@ BOOK_META: dict[str, dict] = {
     "draftkings": {"title": "DraftKings", "region": "us", "url": "https://sportsbook.draftkings.com"},
     "fanduel": {"title": "FanDuel", "region": "us", "url": "https://sportsbook.fanduel.com"},
     "betmgm": {"title": "BetMGM", "region": "us", "url": "https://sports.betmgm.com"},
+    "caesars": {"title": "Caesars", "region": "us", "url": "https://sportsbook.caesars.com"},
 }
 # Sharpness-ordered reference preference (full band-staleness selection is P3b).
-FAILOVER_PRIORITY = ["pinnacle", "circa", "draftkings", "fanduel", "betmgm"]
+FAILOVER_PRIORITY = ["pinnacle", "circa", "draftkings", "fanduel", "betmgm", "caesars"]
 
 # Plausible American moneylines per gamePk — just seed values; the UI lets you edit them.
 DEFAULT_ODDS: dict[int, tuple[int, int]] = {
@@ -72,12 +101,15 @@ async def _apipeline(mode: str):
     """
     if mode == "live":
         sched, kalshi = StatsApiSchedule(), LiveKalshiEvents()
+        # Live sportsbook odds via OpticOdds when a key is present; otherwise mock
+        # (which simply won't join to live gamePks).
+        odds_src = LiveOpticOdds() if os.environ.get("OPTIC_ODDS_API_KEY") else MockOdds()
         today = datetime.now(timezone.utc).date()
         start, end = today.isoformat(), (today + timedelta(days=CONFIG.window_days - 1)).isoformat()
     else:
         sched, kalshi = MockSchedule(), MockKalshiEvents()
+        odds_src = MockOdds()
         start = end = SLATE_DATE
-    odds_src = MockOdds()  # odds always mock for now (no key)
 
     try:
         reg = FixtureRegistry()
@@ -96,7 +128,16 @@ async def _apipeline(mode: str):
 
 
 def _pipeline(mode: str = "mock"):
-    return asyncio.run(_apipeline(mode))
+    # Cache live results briefly so repeated slate/detail requests don't re-hit the
+    # shared OpticOdds key. Mock is cheap and always fresh.
+    if mode == "live":
+        cached = _live_cache.get("live")
+        if cached and (time.monotonic() - cached[0]) < _LIVE_TTL_S:
+            return cached[1]
+        result = asyncio.run(_apipeline("live"))
+        _live_cache["live"] = (time.monotonic(), result)
+        return result
+    return asyncio.run(_apipeline("mock"))
 
 
 def build_slate(mode: str = "mock") -> dict:
