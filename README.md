@@ -24,6 +24,26 @@ export ODDS_API_KEY=...
 python -m mlb_fair.main --mode live
 ```
 
+## Demo UI
+
+An interactive page that runs the mock slate through the real pipeline (gamePk
+spine → Kalshi field-level mapping → two-way de-vig). Edit any moneyline to watch
+its fair recompute; doubleheaders show their disambiguation confidence
+(`exact` / `ordinal` / `text`) and the fail-safe (`pending` / `unmatched`) cases.
+
+```bash
+pip install -e ".[web]"
+python -m uvicorn webapp:app --reload      # -> http://localhost:8000
+```
+
+Deploy to Vercel (config in `vercel.json` + `api/index.py`, deps in `requirements.txt`):
+
+```bash
+npm i -g vercel    # if needed
+vercel             # first run links/creates the project; deploys a preview
+vercel --prod      # promote to production
+```
+
 ## Test
 
 ```bash

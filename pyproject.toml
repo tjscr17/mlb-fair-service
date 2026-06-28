@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+web = ["fastapi>=0.110", "uvicorn>=0.29"]  # demo UI (webapp/); see README "Demo UI"
 
 [project.scripts]
 mlb-fair = "mlb_fair.main:cli"

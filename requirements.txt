@@ -1,0 +1,6 @@
+# Runtime deps for the Vercel serverless demo (api/index.py).
+# Mirrors the [web] extra + the package's runtime needs (mock demo path only;
+# httpx-based live clients are not imported by the web app).
+fastapi>=0.110
+pydantic>=2
+tzdata>=2024.1
