@@ -276,7 +276,7 @@ def game_detail(game_pk: int, method: str = "multiplicative", mode: str | None =
                     "book": bk.book,
                     "title": meta["title"],
                     "region": meta["region"],
-                    "url": meta["url"],
+                    "url": bk.deep_link or meta["url"],  # direct posting if OpticOdds gave one
                     "home_price": bk.home_price,
                     "away_price": bk.away_price,
                     "last_update": bk.last_update.isoformat() if bk.last_update else None,

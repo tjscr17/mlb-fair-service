@@ -27,6 +27,7 @@ class OddsBook:
     home_price: float
     away_price: float
     last_update: Optional[datetime] = None  # per-book staleness clock (the band uses this in P3b)
+    deep_link: Optional[str] = None  # direct link to the book's posting (OpticOdds provides this)
 
 
 @dataclass

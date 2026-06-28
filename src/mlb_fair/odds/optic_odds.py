@@ -170,6 +170,12 @@ def _group_books(rows: list[dict], home: Optional[str], away: Optional[str]) -> 
             continue
         agg[book][side] = price
         agg[book].setdefault("last", o.get("timestamp") or o.get("last_update") or o.get("updated_at"))
+        if "deep" not in agg[book]:
+            dl = o.get("deep_link")
+            if isinstance(dl, dict):
+                dl = dl.get("desktop") or dl.get("web") or next(iter(dl.values()), None)
+            if isinstance(dl, str) and dl:
+                agg[book]["deep"] = dl
 
     books: list[OddsBook] = []
     for book, d in agg.items():
@@ -181,6 +187,7 @@ def _group_books(rows: list[dict], home: Optional[str], away: Optional[str]) -> 
                     home_price=float(d["home"]),
                     away_price=float(d["away"]),
                     last_update=_ts(d.get("last")),
+                    deep_link=d.get("deep"),
                 )
             )
     return books
