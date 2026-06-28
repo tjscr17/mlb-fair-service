@@ -51,6 +51,17 @@ def _book_key(name: str) -> str:
     return name.strip().lower().replace(" ", "")
 
 
+def _team_name(fx: dict, side: str) -> Optional[str]:
+    """OpticOdds team name: `<side>_team_display`, falling back to the competitor name."""
+    v = fx.get(f"{side}_team_display")
+    if v:
+        return v
+    comp = fx.get(f"{side}_competitors")
+    if isinstance(comp, list) and comp and isinstance(comp[0], dict):
+        return comp[0].get("name") or comp[0].get("abbreviation")
+    return None
+
+
 class LiveOpticOdds:
     def __init__(
         self,
@@ -120,7 +131,7 @@ class LiveOpticOdds:
         # 3) Shape into OddsEvent, matching each selection to the fixture's home/away.
         events: list[OddsEvent] = []
         for fid, fx in fx_by_id.items():
-            home, away = fx.get("home_team"), fx.get("away_team")
+            home, away = _team_name(fx, "home"), _team_name(fx, "away")
             events.append(
                 OddsEvent(
                     id=str(fid),
@@ -142,6 +153,8 @@ def _group_books(rows: list[dict], home: Optional[str], away: Optional[str]) -> 
     h, a = _norm(home), _norm(away)
     agg: dict[str, dict] = defaultdict(dict)
     for o in rows:
+        if o.get("is_main") is False:  # skip alternate lines; keep the main moneyline
+            continue
         book = o.get("sportsbook")
         sel = o.get("selection") or o.get("name") or o.get("normalized_selection")
         price = o.get("price")

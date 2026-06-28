@@ -7,7 +7,14 @@ network-tested here (it needs the shared key).
 
 from __future__ import annotations
 
-from mlb_fair.odds.optic_odds import _group_books
+from mlb_fair.odds.optic_odds import _group_books, _team_name
+
+
+def test_team_name_uses_display_then_competitors():
+    # OpticOdds uses *_team_display (NOT *_team); fall back to competitors[].name.
+    assert _team_name({"home_team_display": "Toronto Blue Jays"}, "home") == "Toronto Blue Jays"
+    assert _team_name({"away_competitors": [{"name": "Texas Rangers"}]}, "away") == "Texas Rangers"
+    assert _team_name({}, "home") is None
 
 
 def _rows():
