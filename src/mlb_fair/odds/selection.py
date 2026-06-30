@@ -96,6 +96,12 @@ class BandSelector:
 
     # ---- public API ------------------------------------------------------- #
 
+    def forget(self, game_pk: int) -> None:
+        """Drop a fixture's drift/live state once it's no longer quoted (avoids an
+        unbounded leak in a long-running service)."""
+        self._consensus_hist.pop(game_pk, None)
+        self._live.pop(game_pk, None)
+
     def select(
         self,
         game_pk: int,
@@ -119,10 +125,13 @@ class BandSelector:
         live = self._live_set(game_pk, books, c, lower_w, upper_w)
         self._live[game_pk] = {b.book for b in live}
 
+        # Below the min book count the band isn't the gate (cold start) — don't
+        # report a band we didn't actually use.
+        band = None if len(books) < self.cfg.min_books_for_band else (-lower_w, upper_w)
+
         source, fair_home = self._failover(live, books)
         if source is None or fair_home is None:
-            reason = "all_books_stale" if books else "no_books"
-            return Selection(game_pk, None, None, None, len(live), c, (-lower_w, upper_w), reason=reason)
+            return Selection(game_pk, None, None, None, len(live), c, band, reason="all_books_stale")
 
         return Selection(
             game_pk=game_pk,
@@ -131,7 +140,7 @@ class BandSelector:
             fair_away=1.0 - fair_home,
             live_book_count=len(live),
             consensus_logodds=c,
-            band_logodds=(-lower_w, upper_w),
+            band_logodds=band,
             live_books=[b.book for b in live],
         )
 
@@ -144,7 +153,10 @@ class BandSelector:
                 fr = devig(q.home_price, q.away_price, method)
             except Exception:
                 continue
-            age = max(0.0, (now - q.last_update).total_seconds())
+            lu = q.last_update
+            if lu.tzinfo is None:  # be defensive: a naive ts would crash the subtraction
+                lu = lu.replace(tzinfo=timezone.utc)
+            age = max(0.0, (now - lu).total_seconds())
             sharp = SHARPNESS.get(q.book, _DEFAULT_SHARPNESS)
             freshness = math.exp(-age / _FRESHNESS_TAU_S)  # weight only
             out.append(BookFair(q.book, fr.home, _logit(fr.home), age, sharp * freshness))

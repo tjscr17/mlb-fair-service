@@ -29,15 +29,22 @@ class EmitScheduler:
         self.sink = sink
         self.selector = selector
         self.cfg = config
+        self._seen: set[int] = set()  # gamePks quoted last tick (for state cleanup)
 
     def emit_once(self, now: Optional[datetime] = None) -> list[EmitRecord]:
         now = now or datetime.now(timezone.utc)
+        fixtures = self.registry.quotable()
         out: list[EmitRecord] = []
-        for fx in self.registry.quotable():
+        for fx in fixtures:
             quotes = self.odds.get(fx.game_pk)
             rec = compute_fair(fx, quotes, self.selector, self.cfg.devig_method, now=now)
             self.sink.emit(rec)
             out.append(rec)
+        # Release selector state for fixtures that have left the pre-game set.
+        current = {fx.game_pk for fx in fixtures}
+        for pk in self._seen - current:
+            self.selector.forget(pk)
+        self._seen = current
         return out
 
     async def run(self, ticks: Optional[int] = None, interval_s: Optional[float] = None) -> None:

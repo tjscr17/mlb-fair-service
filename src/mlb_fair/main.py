@@ -16,7 +16,6 @@ from datetime import datetime, timedelta, timezone
 
 from .config import Config
 from .emit.sink import JsonlSink
-from .engine.fair_engine import compute_fair  # noqa: F401 (re-export convenience)
 from .engine.registry import FixtureRegistry
 from .engine.scheduler import EmitScheduler
 from .kalshi.mapping import apply, map_events
