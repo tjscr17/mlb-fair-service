@@ -47,10 +47,16 @@ Layout (`src/mlb_fair/`):
   at quote time. These are decoupled loops.
 
 ## Build status (work phases in order)
-- DONE: P0 scaffold/models/config, P1 spine+registry, P3a devig. 11 tests passing.
-- NEXT: **P2** Kalshi mapping. First dump a real Kalshi MLB event to confirm `strike_date` semantics
-  and what's in `product_metadata`, then build the field-level join against mocks.
-- THEN: P3b selection/band → P4 engine+scheduler+emit → P5 tests + README + DESIGN.md.
+- DONE: P0 scaffold/models/config, P1 spine+registry, P2 Kalshi mapping (DH bijection + YES-side),
+  P3a devig, P3 odds clients (OpticOdds live + The Odds API mock + odds→gamePk join),
+  P3b selection/band + failover, P4 engine+scheduler+emit + `main.py`, P5 tests + DESIGN.md.
+  `python -m mlb_fair.main --mode mock` runs the full acceptance scenario. **47 tests passing.**
+- Verified live: real Kalshi `KXMLBGAME` schema differs from the original spec — no `strike_date`
+  (use `occurrence_datetime`), two per-team markets per event, `product_metadata` carries no identity.
+- Bonus: interactive web demo in `webapp/` (mock/live toggle, edge vs Kalshi price). See `webapp/README.md`.
+- Polish backlog (rough-draft → final): tune band params (`band_k`, drift window) on real moves;
+  real async odds poller + 60s live emit loop (currently a static cache + bounded ticks); wire the
+  webapp's "REF" pick to the band selector; add Betfair/Circa live adapters.
 
 ## Demo UI
 - An interactive demo lives in `webapp/` (FastAPI over the real pipeline) + `api/`+`vercel.json`

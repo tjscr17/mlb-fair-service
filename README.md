@@ -16,13 +16,19 @@ pip install -e ".[dev]"
 ## Run
 
 ```bash
-# mock end-to-end (no API keys needed)
+# mock end-to-end (no API keys needed): a simulated slate with a split DH, a straight
+# DH, a mid-session Pinnacle outage (failover + switch-back), and an all-books-stale
+# window emitting "no sportsbook fair". Emits to stdout + emits.jsonl.
 python -m mlb_fair.main --mode mock
+python -m mlb_fair.main --mode mock --ticks 6 --interval 1   # bounded run
 
-# live (requires an odds aggregator key)
-export ODDS_API_KEY=...
-python -m mlb_fair.main --mode live
+# live (StatsAPI + Kalshi are public; sportsbook odds need an OpticOdds key)
+export OPTIC_ODDS_API_KEY=...   # PowerShell: $env:OPTIC_ODDS_API_KEY="..."  (or a .env file)
+python -m mlb_fair.main --mode live --ticks 1
 ```
+
+Each emit carries provenance: `source_book`, `live_book_count`, `consensus_logodds`,
+and the `band_logodds` band used that tick (see `DESIGN.md`).
 
 ## Demo UI
 
@@ -52,6 +58,9 @@ pytest -q
 
 ## Status
 
-Foundation complete and tested (spine + registry + de-vig). Kalshi mapping, the
-dispersion-band staleness/failover engine, and the emit scheduler are in progress —
-see the phase checklist in `DEVELOPMENT.md`.
+All phases implemented end-to-end (P0–P5): gamePk spine + registry, Kalshi → gamePk
+mapping (DH bijection + YES-side), de-vig, the dispersion-band staleness + failover
+selector, and the fair engine + 60s emit scheduler + JSONL sink, wired in `main.py`.
+Live adapters: StatsAPI, Kalshi, OpticOdds. 47 tests passing. See `DESIGN.md` for the
+reasoning and `DEVELOPMENT.md` for the phase map. (Rough-draft quality — band
+parameters and the live emit loop are tuned for the mock acceptance run.)
